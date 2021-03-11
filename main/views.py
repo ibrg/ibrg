@@ -13,11 +13,15 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.contrib.postgres.search import SearchVector
 
 from rest_framework import viewsets
-from .serializers import AdvertSerializer
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import BasePermission, IsAuthenticatedOrReadOnly, SAFE_METHODS
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 from .forms import ProfileForm, SubscribeForm, UserForm
 from .models import Advert, Apartment, House, User
 from .permissions import RealtorPermissionMixin
+from .serializers import AdvertSerializer
 
 
 # Advert section
@@ -164,9 +168,29 @@ def subscribe(request: HttpRequest) -> \
 
 
 # API
+class SmallResultsSetPagination(PageNumberPagination):
+    page_size = 1
+    page_size_query_param = 'page_size'
+    max_page_size = 5
+
+
+class IsOwnerOrReadOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in SAFE_METHODS:
+            return True
+
+        return obj.advert_owner == request.user
+
+
 class AdvertViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
     queryset = Advert.objects.all()
     serializer_class = AdvertSerializer
+    pagination_class = SmallResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['advert_title', 'description', 'price']
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]

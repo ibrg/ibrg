@@ -14,7 +14,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # API
     path('api/v1/', include(router.urls)),
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/14_6_auth_permission
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # accounts
     path('accounts/', include('allauth.urls')),
