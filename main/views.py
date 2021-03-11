@@ -12,9 +12,9 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.contrib.postgres.search import SearchVector
 
-from rest_framework import permissions, viewsets
+from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import BasePermission, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import BasePermission, IsAuthenticatedOrReadOnly, SAFE_METHODS
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .forms import ProfileForm, SubscribeForm, UserForm
@@ -177,7 +177,7 @@ class IsOwnerOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request,
         # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in SAFE_METHODS:
             return True
 
         return obj.advert_owner == request.user
